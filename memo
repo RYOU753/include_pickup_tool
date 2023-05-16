@@ -1,0 +1,7 @@
+D:\\source\\rust\\include_pickup_tool\\test\\Class\\ChronoManager.h
+D:\\source\\rust\\include_pickup_tool\\test\\Include
+D:\\source\\rust\\include_pickup_tool\\test\\.exe
+..\\Class\\ChronoManager.h
+
+Includeフォルダのいる絶対パスと同じパスまで調べて何パス文離れているかをカウントした数が..の数になって
+違うパスからはそのままコピーして上記のやつと合体させる
