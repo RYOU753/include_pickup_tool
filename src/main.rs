@@ -28,24 +28,44 @@ fn main() {
 		println!("入力");
 		pathList = get_target_path1();
 	}
+	//個別にヘッダをつくるか一戸にまとめるか
+	println!("allで一つのファイルにまとめる");
+	let cmd = get_input();
 	//ヘッダファイルの絶対パスリスト
 	let mut headerPathList = all_target(pathList);
 	//Includeからみたヘッダファイルの相対パスリスト
+	let mut isFirst = true;
+	isFirst = false;
 	for headerPath in headerPathList.unwrap(){
 		let relative = headerPath.strip_prefix(&exe_pathbuf).unwrap();
 		let relative_buf = path::Path::new("..").join(relative);
 		let headerFile = relative.file_name().unwrap();
-		let wr = format!("#pragma once\n#include \"{}\"\n",relative_buf.to_string_lossy().to_string());
-		create_header(&include_path.join(headerFile),wr);
+		if(cmd == "all"){
+			create_all_header(&include_path.join("all_header.h"), relative_buf.to_string_lossy().to_string(),&mut isFirst);
+		}else{
+			create_header(&include_path.join(headerFile),relative_buf.to_string_lossy().to_string());
+		}
 		println!("{}",relative_buf.display());
 	}
 	//println!("{:?}",headerPathList);
 	get_input();
 }
+fn create_all_header(path:&path::PathBuf,write:String,isFirst:&mut bool)->std::io::Result<()>{
+	let mut file: fs::File;
+	if *isFirst {
+		file = fs::File::create(path)?;
+		file.write_all(String::from("#pragma once\n").as_bytes());
+		*isFirst=false;
+	}else{
+		file = fs::File::open(path)?;
+	}
+	file.write_all(write.as_bytes());
+	return Ok(());
+}
 
 fn create_header(path:&path::PathBuf,write:String)->std::io::Result<()>{
 	let mut file = fs::File::create(path)?;
-	file.write_all(write.as_bytes())?;
+	file.write_all(format!("#pragma once\n#include \"{}\"\n",write).as_bytes())?;
 
 	return Ok(());
 }
