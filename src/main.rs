@@ -17,49 +17,48 @@ fn main() {
 	fs::create_dir("Include");
 	let include_path = exe_pathbuf.join("Include");
 	//最初からフォルダパスがあるか
-	let mut pathList:Vec<String>;
+	let path_list:Vec<String>;
 	if is_target(&args)
 	{
 		println!("ターゲットあり");
-		pathList = get_target_path2(&args);
+		path_list = get_target_path2(&args);
 	}
 	else
 	{
 		println!("入力");
-		pathList = get_target_path1();
+		path_list = get_target_path1();
 	}
 	//個別にヘッダをつくるか一戸にまとめるか
 	println!("allで一つのファイルにまとめる");
 	let cmd = get_input();
 	//ヘッダファイルの絶対パスリスト
-	let mut headerPathList = all_target(pathList);
+	let header_path_list = all_target(path_list);
 	//Includeからみたヘッダファイルの相対パスリスト
-	let mut isFirst = true;
-	isFirst = false;
-	for headerPath in headerPathList.unwrap(){
-		let relative = headerPath.strip_prefix(&exe_pathbuf).unwrap();
+	let mut is_first = true;
+	for header_path in header_path_list.unwrap(){
+		let relative = header_path.strip_prefix(&exe_pathbuf).unwrap();
 		let relative_buf = path::Path::new("..").join(relative);
-		let headerFile = relative.file_name().unwrap();
-		if(cmd == "all"){
-			create_all_header(&include_path.join("all_header.h"), relative_buf.to_string_lossy().to_string(),&mut isFirst);
+		let header_file = relative.file_name().unwrap();
+		if cmd == "all" {
+			create_all_header(&include_path.join("all_header.h"), relative_buf.to_string_lossy().to_string(),&mut is_first);
 		}else{
-			create_header(&include_path.join(headerFile),relative_buf.to_string_lossy().to_string());
+			create_header(&include_path.join(header_file),relative_buf.to_string_lossy().to_string());
 		}
 		println!("{}",relative_buf.display());
 	}
 	//println!("{:?}",headerPathList);
 	get_input();
 }
-fn create_all_header(path:&path::PathBuf,write:String,isFirst:&mut bool)->std::io::Result<()>{
+fn create_all_header(path:&path::PathBuf,write:String,is_first:&mut bool)->std::io::Result<()>{
 	let mut file: fs::File;
-	if *isFirst {
+	if *is_first {
 		file = fs::File::create(path)?;
 		file.write_all(String::from("#pragma once\n").as_bytes());
-		*isFirst=false;
+		*is_first=false;
 	}else{
-		file = fs::File::open(path)?;
+		file = fs::File::options().append(true).open(path)?;
 	}
-	file.write_all(write.as_bytes());
+	file.write_all(format!("#include \"{}\"\n",write).as_bytes());
 	return Ok(());
 }
 
