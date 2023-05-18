@@ -9,6 +9,7 @@ Arguments:
 Options:
   -i, --include-make-dir-path <PATH>  インクルードするフォルダを作る場所  
   -a, --all-pack                      ヘッダファイルを一つにまとめる  
+      --apn <ALL_PACK_NAME>           一つのファイルにまとめたファイルの名前 [default: all_header]  
   -h, --help                          Print help  
   -V, --version                       Print version  
 ```

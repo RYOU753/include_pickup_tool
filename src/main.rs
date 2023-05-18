@@ -21,6 +21,9 @@ struct Args {
 	/// ヘッダファイルを一つにまとめる
 	#[arg(short,long,default_value_t = false)]
 	all_pack:bool,
+	/// 一つのファイルにまとめたファイルの名前
+	#[arg(long = "apn",default_value = "all_header")]
+	all_pack_name:String,
 }
 
 fn main() {
@@ -74,7 +77,7 @@ fn main() {
 		let relative_buf = path::Path::new("..").join(relative);
 		let header_file = relative.file_name().unwrap();
 		if args.all_pack {
-			create_all_header(&include_dir_path.join("all_header.h"), relative_buf.to_string_lossy().to_string(),&mut is_first);
+			create_all_header(&include_dir_path.join(args.all_pack_name.clone() + ".h"), relative_buf.to_string_lossy().to_string(),&mut is_first);
 		}else{
 			create_header(&include_dir_path.join(header_file),relative_buf.to_string_lossy().to_string());
 		}
