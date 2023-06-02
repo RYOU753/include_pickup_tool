@@ -43,6 +43,7 @@ fn main() {
 		Some(p) => p.join(INCLUDE_DIR_NAME),
 		None => exe_dir_pathbuf.join(INCLUDE_DIR_NAME),
 	};
+	//すでにIncludeフォルダがある場合なにもしない
 	if !include_dir_path.is_dir(){
 		match fs::create_dir(&include_dir_path){
 			Ok(()) => {
@@ -54,15 +55,19 @@ fn main() {
 			},
 		};
 	}
-	//最初からフォルダパスがあるか
+	//最初からすべてのフォルダがあるか
 	if !args.class_dirs.iter().all(|i| i.is_dir()){
 		println!("class dir not existens");
 		std::process::exit(1);
 	}
+	//Includeフォルダにclassフォルダの階層を作る
+	args.class_dirs.iter().for_each(|dir| fs::create_dir_all(include_dir_path.join(dir)));
+
 	//相対パスだった時絶対パスに変換
 	args.class_dirs.iter_mut().for_each(|f| 
 		if f.is_relative(){
 			*f = exe_dir_pathbuf.clone().join(&f).canonicalize().unwrap();
+			//謎の文字列が出現するのでそれの対処
 			if f.to_string_lossy().to_string().starts_with("\\\\?\\"){
 				*f = PathBuf::from(f.to_string_lossy().to_string().replace("\\\\?\\", ""));
 			}
