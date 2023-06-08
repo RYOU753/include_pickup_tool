@@ -25,37 +25,58 @@ struct Args {
 	#[arg(long = "apn",default_value = "all_header")]
 	all_pack_name:String,
 }
+const INCLUDE_DIR_NAME:&str = "Include";
 
 fn main() {
 	//.hのがあるフォルダの絶対パス(or相対パス)を取得
 	//let mut args = Args::parse();
 	let mut args = Args {
-		class_dirs: vec![PathBuf::from("D:/source/Rust/include_pickup_tool/test/Class")],
+		class_dirs: vec![PathBuf::from("./test/Class")],
 		include_make_dir_path: Option::from(PathBuf::from("test/Include")),
 		all_pack:false,
 		all_pack_name:String::from("all_header")
 	};
 	println!("{:?}",args);
-	let exe_dir_pathbuf = get_exe_dir();
-	
+	let fileList = all_target(args.class_dirs).unwrap();
+	for class_dir in args.class_dirs.iter(){
+		let cd = class_dir.to_string_lossy().to_string();
+		//fileList.iter_mut().map(|i| *i = PathBuf::from(i.to_string_lossy().replace("cd",".")));
+	}
+	println!("{:?}",fileList);
+	/* match fs::copy("./test/Class/Timer.h", "./test/Include/tet/f.txt"){
+		Ok(i) => {
+			println!("コピー成功 {i}");
+		},
+		Err(e) =>{
+			println!("コピー失敗 {e}");
+		},
+	}; */
+	//first_version(args);
 }
 
 fn first_version(mut args: Args) {
-    //exeファイルの絶対パスを取得
-    let exe_dir_pathbuf = get_exe_dir();
-    println!("{}",exe_dir_pathbuf.display());
-    //指定したパスにInclude用のフォルダの決定(なにもパスがない場合はexeと同じ階層にIncludeフォルダのパスにする)
-	const INCLUDE_DIR_NAME:&str = "Include";
-    let include_dir_path = decided_include_dir(&args, &exe_dir_pathbuf);
-    //すでにInclude用のフォルダがある場合なにもしない
+	//exeファイルの絶対パスを取得
+	let exe_dir_pathbuf = get_exe_dir();
+	println!("{}",exe_dir_pathbuf.display());
+
+	//指定したパスにInclude用のフォルダの決定(なにもパスがない場合はexeと同じ階層にIncludeフォルダのパスにする)
+	let include_dir_path = decided_include_dir(&args, &exe_dir_pathbuf);
+
+	//すでにInclude用のフォルダがある場合なにもしない
 	make_include_dir(&include_dir_path);
+
 	//最初からすべてのフォルダがあるか
 	if !args.class_dirs.iter().all(|i| i.is_dir()){
 			println!("class dir not existens");
 			std::process::exit(1);
 	}
 	//Includeフォルダにclassフォルダの階層を作る
-
+	for dir in &args.class_dirs{
+		let entrys = fs::read_dir(dir).unwrap();
+		for entry in entrys{
+			entry.unwrap();
+		}
+	}
 	//相対パスだった時絶対パスに変換
 	args.class_dirs.iter_mut().for_each(|f| 
 		if f.is_relative(){
@@ -84,6 +105,15 @@ fn first_version(mut args: Args) {
 	//println!("{:?}",headerPathList);
 	get_input();
 }
+/** 指定したディレクトリ内のすべてのファイル（ディレクトリ）のパス情報を取得します。 */
+fn read_dir_entries<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
+    let mut entries = fs::read_dir(path)?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
+
+    entries.sort();
+    Ok(entries)
+}
 
 fn make_include_dir(include_dir_path: &PathBuf) {
     if !include_dir_path.is_dir(){
@@ -100,8 +130,8 @@ fn make_include_dir(include_dir_path: &PathBuf) {
 }
 
 fn decided_include_dir(args: &Args, exe_dir_pathbuf: &PathBuf) -> PathBuf {
-	return match args.include_make_dir_path {
-				Some(p) => p,
+	return match &args.include_make_dir_path {
+				Some(p) => p.to_path_buf(),
 				None => exe_dir_pathbuf.join(INCLUDE_DIR_NAME),
 			};
 }
