@@ -2,10 +2,9 @@ use std::env;
 use std::io;
 use std::error::Error;
 use std::io::Write;
-use std::os::windows::process;
 use std::path;
 use std::fs;
-use std::path::{PathBuf,Path};
+use std::path::PathBuf;
 extern crate clap;
 use clap::Parser;
 
@@ -40,12 +39,12 @@ fn main() {
 	
 }
 
+const INCLUDE_DIR_NAME:&str = "Include";
 fn first_version(mut args: Args) {
     //exeファイルの絶対パスを取得
     let exe_dir_pathbuf = get_exe_dir();
     println!("{}",exe_dir_pathbuf.display());
     //指定したパスにInclude用のフォルダの決定(なにもパスがない場合はexeと同じ階層にIncludeフォルダのパスにする)
-	const INCLUDE_DIR_NAME:&str = "Include";
     let include_dir_path = decided_include_dir(&args, &exe_dir_pathbuf);
     //すでにInclude用のフォルダがある場合なにもしない
 	make_include_dir(&include_dir_path);
@@ -100,10 +99,10 @@ fn make_include_dir(include_dir_path: &PathBuf) {
 }
 
 fn decided_include_dir(args: &Args, exe_dir_pathbuf: &PathBuf) -> PathBuf {
-	return match args.include_make_dir_path {
-				Some(p) => p,
+	match &args.include_make_dir_path {
+				Some(p) => p.to_path_buf(),
 				None => exe_dir_pathbuf.join(INCLUDE_DIR_NAME),
-			};
+			}
 }
 
 fn get_exe_dir() -> PathBuf {
